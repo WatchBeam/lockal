@@ -27,7 +27,8 @@ function Lock (key, options) {
     options = options || {};
     this.lockCheck = options.lockCheck || 5;
     this.retryInterval = options.retryInterval || 2;
-    this.maintainInterval = options.maintainInterval || 100;
+    this.maintainInterval = options.maintainInterval || 1000;
+    this.isMaintaining = false;
 }
 
 /**
@@ -57,7 +58,12 @@ Lock.prototype.acquire = function (ttl, callback) {
         if (self.lockedTo() !== self.uid) {
             args.callback(new Error('Lock was unable to be acquired.'));
         } else {
-            if (args.ttl) setTimeout(unlock, args.ttl);
+            if (args.ttl) {
+                setTimeout(function () {
+                    if (!self.isMaintaining) unlock();
+                }, args.ttl);
+            }
+
             args.callback(undefined, unlock, maintain);
         }
     }, this.lockCheck);
@@ -106,13 +112,19 @@ Lock.prototype.unlock = function (force) {
  * lock is acquired.
  */
 Lock.prototype.maintain = function () {
-    var self = this;
-    setTimeout(function () {
-        if (self.lockedTo() === self.uid) {
-            self.addLock(self.maintainInterval * 1.1);
+    if (this.lockedTo() === this.uid) {
+        this.isMaintaining = true;
+        this.addLock(this.maintainInterval * 1.1);
+
+        var self = this;
+        setTimeout(function () {
             self.maintain();
-        }
-    }, this.maintainInterval);
+        }, this.maintainInterval);
+
+    } else {
+        this.isMaintaining = false;
+    }
+
 };
 
 /**

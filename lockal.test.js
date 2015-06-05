@@ -171,6 +171,32 @@ describe('lock', function () {
             unlock();
             clock.tick(20);
             expect(called).to.be.true;
+            clock.tick(1000);
+            expect(lock1.lockedTo() !== lock1.uid)
+            done();
+        });
+        clock.tick(5);
+    });
+
+    it('does not expire on ttl with maintain', function (done) {
+        lock1.acquire(50, function (err, unlock, maintain) {
+            expect(err).to.be.undefined;
+            maintain();
+
+            var called = false;
+            lock2.mustAcquire(function () {
+                called = true;
+            });
+            expect(called).to.be.false;
+            clock.tick(40);
+            expect(called).to.be.false;
+            clock.tick(20);
+            expect(called).to.be.false;
+            clock.tick(100);
+            expect(called).to.be.false;
+            unlock();
+            clock.tick(10);
+            expect(called).to.be.true;
             done();
         });
         clock.tick(5);
