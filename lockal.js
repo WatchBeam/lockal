@@ -114,7 +114,7 @@ Lock.prototype.unlock = function (force) {
 Lock.prototype.maintain = function () {
     if (this.lockedTo() === this.uid) {
         this.isMaintaining = true;
-        this.addLock(this.maintainInterval * 1.1);
+        this.addLock(this.maintainInterval * 2);
 
         var self = this;
         setTimeout(function () {
