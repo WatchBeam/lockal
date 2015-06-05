@@ -12,6 +12,8 @@ exports.isEnabled = !!localStorage;
  *           be written over by another tab.
  * @property {Number} [options.retryInterval=2]
  *           Duration between retries on mustAcquire.
+ * @property {Number} [options.maintainInterval=1000]
+ *           How often the maintainer should touch the lock.
  */
 function Lock (key, options) {
     if (!exports.isEnabled) {
@@ -25,6 +27,7 @@ function Lock (key, options) {
     options = options || {};
     this.lockCheck = options.lockCheck || 5;
     this.retryInterval = options.retryInterval || 2;
+    this.maintainInterval = options.maintainInterval || 100;
 }
 
 /**
@@ -46,6 +49,7 @@ Lock.prototype.acquire = function (ttl, callback) {
     }
 
     var unlock = this.unlock.bind(this);
+    var maintain = this.maintain.bind(this);
     var self = this;
     this.addLock(args.ttl);
 
@@ -54,7 +58,7 @@ Lock.prototype.acquire = function (ttl, callback) {
             args.callback(new Error('Lock was unable to be acquired.'));
         } else {
             if (args.ttl) setTimeout(unlock, args.ttl);
-            args.callback(undefined, unlock);
+            args.callback(undefined, unlock, maintain);
         }
     }, this.lockCheck);
 };
@@ -95,6 +99,20 @@ Lock.prototype.unlock = function (force) {
     if (force || this.lockedTo() === this.uid) {
         localStorage.setItem(this.getKey(), null);
     }
+};
+
+/**
+ * Keeps updating the expiration on the lock, so long as the
+ * lock is acquired.
+ */
+Lock.prototype.maintain = function () {
+    var self = this;
+    setTimeout(function () {
+        if (self.lockedTo() === self.uid) {
+            self.addLock(self.maintainInterval * 1.1);
+            self.maintain();
+        }
+    }, this.maintainInterval);
 };
 
 /**

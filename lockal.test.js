@@ -153,4 +153,26 @@ describe('lock', function () {
         expect(c).to.equal(2);
         done();
     });
+
+    it('maintains until unlocked', function (done) {
+        lock1.acquire(function (err, unlock, maintain) {
+            expect(err).to.be.undefined;
+
+            var called = false;
+            lock2.mustAcquire(function () {
+                called = true;
+            });
+
+            maintain();
+            expect(called).to.be.false;
+            clock.tick(1100);
+            expect(called).to.be.false;
+            clock.tick(1100);
+            unlock();
+            clock.tick(20);
+            expect(called).to.be.true;
+            done();
+        });
+        clock.tick(5);
+    });
 });

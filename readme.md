@@ -30,11 +30,18 @@ A boolean to indicate whether localStorage is available on the current platform.
 
 Each Lock class is used to interact with a single lock "key". Options usually need not be given, but may be useful if you want to tweak some internals.
 
+ * `lockCheck` - Time to wait after a lock to ensure it's not going to be written over by another tab.
+ * `retryInterval` - Duration between retries on mustAcquire.
+ * `maintainInterval` - How often the maintainer should touch the lock.
+
 #### lock.acquire([ttl][, callback])
 
 Attempts to lock on the key. The lock will remain in place for the TTL, given in milliseconds, or until explicitly unlocked.
 
-Callback will be called with an Error as its first argument if a lock wasn't made. Otherwise, a function will be passed as the second argument to release the lock.
+Callback will be called with:
+ * an Error as its first argument if a lock wasn't made,
+ * otherwise, an `unlock` function as its second argument,
+ * and a `maintain` function as its third argument.
 
 #### lock.mustAcquire([ttl][, callback])
 
@@ -45,6 +52,10 @@ Similar to lock.acquire, but only runs the callback after a lock was successfull
 Unlocks a key if it was locked by this Locker instance. If `force` is given to be true, the key is unlocked even if the original lock was not put in place by this locker instance.
 
 Returns whether or not the unlock was executed.
+
+#### lock.maintain()
+
+Keep updating a lock's TTL so long as the instance in in existence, and the lock is maintained. Calling `unlock` or closing the tab will cause the maintenance to stop, and the lock to therefore be released.
 
 ## License
 
