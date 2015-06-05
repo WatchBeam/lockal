@@ -1,0 +1,38 @@
+{
+  "name": "lockal",
+  "version": "1.0.0",
+  "description": "A fully-feature locking system on local storage.",
+  "main": "lockal.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha lockal.test.js && npm run lint",
+    "lint": "node node_modules/eslint/bin/eslint.js lockal.js",
+    "cover": "node node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha -- lockal.test.js",
+    "travis": "npm run lint && node node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha --report lcovonly -- lockal.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCProHosting/lockal"
+  },
+  "keywords": [
+    "local",
+    "storage",
+    "localstorage",
+    "browser",
+    "lock",
+    "locking",
+    "browserify"
+  ],
+  "author": "Connor Peet <connor@peet.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MCProHosting/lockal/issues"
+  },
+  "homepage": "https://github.com/MCProHosting/lockal",
+  "devDependencies": {
+    "chai": "^2.2.0",
+    "eslint": "^0.21.0",
+    "istanbul": "^0.3.13",
+    "mocha": "^2.2.4",
+    "sinon": "^1.14.1"
+  }
+}
