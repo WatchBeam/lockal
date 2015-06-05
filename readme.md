@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/MCProHosting/lockal.svg?style=flat-square)](https://travis-ci.org/MCProHosting/lockal) [![Coverage Status](https://img.shields.io/coveralls/MCProHosting/lockal.svg?style=flat-square)](https://coveralls.io/r/MCProHosting/lockal)
 
-Lockal is a bespoke localStorage based locking system, allowing atomic actions to be performed across tabs and browser windows.
+Lockal is a bespoke localStorage based locking system, allowing atomic* actions to be performed across tabs and browser windows.
 
 ## Usage
 
@@ -19,6 +19,8 @@ lock.acquire(function (err, unlock) {
     }
 });
 ```
+
+<sub><sup>* This is not atomic in the true sense, of course, since Javascript doesn't provide the kind of concurrency necessary to ensure entirely thread-safe operations across multiple tabs. This is as close as we can get, though, and should be "good enough" for 99% of use cases.</sup></sub>
 
 ### lockal.isEnabled
 
