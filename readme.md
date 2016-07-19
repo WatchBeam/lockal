@@ -56,7 +56,3 @@ Returns whether or not the unlock was executed.
 #### lock.maintain()
 
 Keep updating a lock's TTL so long as the instance in in existence, and the lock is maintained. Calling `unlock` or closing the tab will cause the maintenance to stop, and the lock to therefore be released.
-
-## License
-
-This software is MIT licensed, copyright 2015 by Beam LLC.
