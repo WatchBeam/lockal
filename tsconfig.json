@@ -8,7 +8,7 @@
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "module": "commonjs",
-    "target": "es6",
+    "target": "es5",
     "outDir": "lib",
     "lib": [
       "es5",
