@@ -1,5 +1,3 @@
-import * as cookie from 'js-cookie'; // tslint:disable-line
-
 export interface ILockStrategy {
   /**
    * Attempts to acquire the lock, rejecting with LockFailedError if it
@@ -22,18 +20,28 @@ interface ICookieContents {
   id: string;
 }
 
-const millisecondsPerDay = 1000 * 60 * 60 * 24;
-
 /**
- * CookieStrategy _attempts_ to maintain locks using the browser's cookie
+ * LocalStorageStrategy _attempts_ to maintain locks using the browser's cookie
  * store. This allows cross-tab locking to occur, but it is possible for
  * races to happen, though we make an effort to avoid them.
  */
-export class CookieStrategy implements ILockStrategy {
+export class LocalStorageStrategy implements ILockStrategy {
+  private static lastGarbageCollection = 0;
+  private static garbageCollectionInterval = 1000 * 60;
+
+  private releaseTimeout: number;
+
   constructor(
     private readonly prefix: string = 'lockal-',
     private readonly checkDelay: number = 5,
-  ) {}
+  ) {
+    // Collect garbage every once and a while so we don't orphan locks
+    // forever if, for example, the locking tab is closed.
+    const nextGc = LocalStorageStrategy.lastGarbageCollection + LocalStorageStrategy.garbageCollectionInterval;
+    if (nextGc <= Date.now()) {
+      this.garbageCollect();
+    }
+  }
 
   /**
    * @override
@@ -43,6 +51,7 @@ export class CookieStrategy implements ILockStrategy {
       throw new Error(`The lock TTL may not be less then ${this.checkDelay}ms (got ${ttl})`);
     }
 
+    clearTimeout(this.releaseTimeout);
     const holder = this.getHolder(key);
     if (holder && holder !== id) {
       return Promise.reject(new LockFailedError('That key is already locked'));
@@ -56,6 +65,8 @@ export class CookieStrategy implements ILockStrategy {
     return delay(this.checkDelay).then(() => {
       if (this.getHolder(key) !== id) {
         throw new LockFailedError('Failed to acquire the lock');
+      } else {
+        setTimeout(() => this.release(key, id), ttl);
       }
     });
   }
@@ -65,7 +76,7 @@ export class CookieStrategy implements ILockStrategy {
    */
   public release(key: string, id: string) {
     if (this.getHolder(key) === id) {
-      cookie.remove(this.prefix + key);
+      localStorage.removeItem(this.prefix + key);
     }
   }
 
@@ -79,12 +90,32 @@ export class CookieStrategy implements ILockStrategy {
   }
 
   private getValue(sourceKey: string): ICookieContents | null {
-    return cookie.getJSON(this.prefix + sourceKey);
+    const value = localStorage.getItem(this.prefix + sourceKey);
+    try {
+      return value && JSON.parse(value);
+    } catch (e) {
+      return null;
+    }
   }
 
   private setValue(sourceKey: string, value: ICookieContents) {
-    const days = Math.ceil((value.expiresAt - Date.now()) / millisecondsPerDay);
-    return cookie.set(this.prefix + sourceKey, value, { expires: days });
+    return localStorage.setItem(this.prefix + sourceKey, JSON.stringify(value));
+  }
+
+  private garbageCollect() {
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix)) {
+        continue;
+      }
+
+      if (!this.getHolder(key.slice(this.prefix.length))) {
+        localStorage.removeItem(key);
+        i -= 1;
+      }
+    }
+
+    LocalStorageStrategy.lastGarbageCollection = Date.now();
   }
 }
 

@@ -32,7 +32,6 @@
   "devDependencies": {
     "@types/chai": "^3.5.2",
     "@types/chai-as-promised": "0.0.30",
-    "@types/js-cookie": "^2.0.28",
     "@types/mocha": "^2.2.41",
     "@types/sinon": "^2.2.2",
     "chai": "^3.0.0",
@@ -44,8 +43,5 @@
     "tslint": "^4.0.0",
     "tslint-microsoft-contrib": "4.0.0",
     "typescript": "^2.3.3"
-  },
-  "dependencies": {
-    "js-cookie": "^2.1.4"
   }
 }
