@@ -75,7 +75,8 @@ export class LocalStorageStrategy implements ILockStrategy {
    * @override
    */
   public release(key: string, id: string) {
-    if (this.getHolder(key) === id) {
+    const holder = this.getHolder(key);
+    if (!holder || holder === id) {
       localStorage.removeItem(this.prefix + key);
     }
   }
