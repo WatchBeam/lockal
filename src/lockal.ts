@@ -49,10 +49,14 @@ export class CookieStrategy implements ILockStrategy {
     }
 
     this.setValue(key, { id, expiresAt: Date.now() + ttl });
+    if (this.checkDelay === 0) {
+      return Promise.resolve();
+    }
+
     return delay(this.checkDelay).then(() => {
-        if (this.getHolder(key) !== id) {
-          throw new LockFailedError('Failed to acquire the lock');
-        }
+      if (this.getHolder(key) !== id) {
+        throw new LockFailedError('Failed to acquire the lock');
+      }
     });
   }
 
