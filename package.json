@@ -1,6 +1,6 @@
 {
   "name": "lockal",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A fully-feature locking system on local storage.",
   "main": "lib/lockal.js",
   "typings": "lib/lockal.d.ts",
