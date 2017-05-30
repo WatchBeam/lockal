@@ -1,46 +1,49 @@
 import { expect } from 'chai';
-import * as cookie from 'js-cookie'; // tslint:disable-line
 import * as sinon from 'sinon';
 
-import { CookieStrategy, Lock, LockFailedError, MemoryStrategy } from './lockal';
+import { LocalStorageStrategy, Lock, LockFailedError, MemoryStrategy } from './lockal';
 
-class MockCookieStore {
+class MockLocalStorage {
   private store: { [key: string]: any } = {};
 
-  public set(key: string, value: any) { // tslint:disable-line
+  public get length() {
+    return Object.keys(this.store).length;
+  }
+
+  public setItem(key: string, value: string) { // tslint:disable-line
     this.store[key] = value;
   }
 
-  public getJSON(key: string): any {
+  public getItem(key: string): any {
     return this.store[key];
   }
 
-  public remove(key: string) {
+  public removeItem(key: string) {
     delete this.store[key];
+  }
+
+  public key(n: number): string | null {
+    return Object.keys(this.store)[n];
+  }
+
+  public clear() {
+    this.store = {};
   }
 }
 
-let cookieSet: sinon.SinonStub;
-let cookieGet: sinon.SinonStub;
-let cookieRemove: sinon.SinonStub;
-let cookieStore: MockCookieStore;
+declare const global: any;
+declare const localStorage: MockLocalStorage;
+
+global.localStorage = new MockLocalStorage();
 let clock: sinon.SinonFakeTimers;
 
 beforeEach(() => {
   clock = sinon.useFakeTimers();
-  cookieStore = new MockCookieStore();
-  cookieSet = sinon.stub(cookie, 'set')
-    .callsFake((key: string, value: any) => cookieStore.set(key, value));
-  cookieGet = sinon.stub(cookie, 'getJSON')
-    .callsFake((key: string) => cookieStore.getJSON(key));
-  cookieRemove = sinon.stub(cookie, 'remove')
-    .callsFake((key: string) => cookieStore.remove(key));
+  (<any> LocalStorageStrategy).lastGarbageCollection = 0;
 });
 
 afterEach(() => {
-  cookieSet.restore();
-  cookieGet.restore();
-  cookieRemove.restore();
+  localStorage.clear();
   clock.restore();
 });
 
@@ -54,35 +57,31 @@ const waitTick = () => {
     .then(() => Promise.resolve());
 };
 
-describe('cookie-specific behavior', () => {
-  it('sets the expiration days correctly', async () => {
-    const lock = new Lock('asdf', { strategy: new CookieStrategy('lockal-', 0) });
+describe('localStorage-specific behavior', () => {
+  it('runs garbage collection', async () => {
+    const lock = new Lock('asdf', { strategy: new LocalStorageStrategy('lockal-', 0) });
     await lock.acquire(1000);
-    expect(cookieSet.getCall(0).args[2]).to.deep.equal({ expires: 1 });
-    await lock.release();
+    clearTimeout((<any> lock).clearTimeout);
 
-    await lock.acquire(1000 * 60 * 60 * 24 * 1.4);
-    expect(cookieSet.getCall(1).args[2]).to.deep.equal({ expires: 2 });
-    lock.release();
-  });
+    // should NOT have run GC, just ran
+    new LocalStorageStrategy(); // tslint:disable-line
+    expect(localStorage.length).to.equal(1);
 
-  it('aborts if someone locked in the meantime', async () => {
-    const lock1 = new Lock('asdf', { strategy: new CookieStrategy() });
+    clock.tick(1000 * 60);
+    expect(localStorage.length).to.equal(1);
 
-    const acquire1 = lock1.acquire(1000);
-    await waitTick();
-    expect(cookieStore.getJSON('lockal-asdf')).to.not.be.undefined;
-    clock.tick(10);
-    cookieStore.set('lockal-asdf', { id: 'wut '});
-    await expect(acquire1).to.eventually.be.rejectedWith(LockFailedError);
+    // should have run GC
+    new LocalStorageStrategy(); // tslint:disable-line
+
+    expect(localStorage.length).to.equal(0);
   });
 });
 
 [
   {
-    name: 'cookies',
-    lock1: new Lock('asdf', { strategy: new CookieStrategy('lockal-', 0) }),
-    lock2: new Lock('asdf', { strategy: new CookieStrategy('lockal-', 0) }),
+    name: 'localStroage',
+    lock1: new Lock('asdf', { strategy: new LocalStorageStrategy('lockal-', 0) }),
+    lock2: new Lock('asdf', { strategy: new LocalStorageStrategy('lockal-', 0) }),
   },
   {
     name: 'memory',
