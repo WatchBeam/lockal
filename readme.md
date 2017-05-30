@@ -1,6 +1,6 @@
 # Lockal
 
-[![Build Status](https://img.shields.io/travis/MCProHosting/lockal.svg?style=flat-square)](https://travis-ci.org/MCProHosting/lockal) [![Coverage Status](https://img.shields.io/coveralls/MCProHosting/lockal.svg?style=flat-square)](https://coveralls.io/r/MCProHosting/lockal)
+[![Build Status](https://img.shields.io/travis/mixer/lockal.svg?style=flat-square)](https://travis-ci.org/mixer/lockal) [![Coverage Status](https://img.shields.io/coveralls/mixer/lockal.svg?style=flat-square)](https://coveralls.io/r/mixer/lockal)
 
 Lockal is a bespoke localStorage based locking system, allowing atomic* actions to be performed across tabs and browser windows.
 

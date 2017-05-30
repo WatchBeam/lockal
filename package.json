@@ -2,16 +2,18 @@
   "name": "lockal",
   "version": "1.0.2",
   "description": "A fully-feature locking system on local storage.",
-  "main": "lockal.js",
+  "main": "lib/lockal.js",
+  "typings": "lib/lockal.d.ts",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha lockal.test.js && npm run lint",
-    "lint": "node node_modules/eslint/bin/eslint.js lockal.js",
-    "cover": "node node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha -- lockal.test.js",
-    "travis": "npm run lint && node node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha --report lcovonly -- lockal.test.js"
+    "test": "npm-run-all --parallel test:lint test:unit",
+    "test:unit": "TS_NODE_COMPILER_OPTIONS='{\"target\":\"es6\"}' mocha --compilers ts:ts-node/register src/*.test.ts -r test-setup.js",
+    "test:lint": "tslint --type-check --project tsconfig.json 'src/**/*.ts'",
+    "build:ts": "tsc",
+    "prepublish": "npm run -s build:ts"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MCProHosting/lockal"
+    "url": "https://github.com/mixer/lockal"
   },
   "keywords": [
     "local",
@@ -19,20 +21,31 @@
     "localstorage",
     "browser",
     "lock",
-    "locking",
-    "browserify"
+    "locking"
   ],
   "author": "Connor Peet <connor@peet.io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MCProHosting/lockal/issues"
+    "url": "https://github.com/mixer/lockal/issues"
   },
-  "homepage": "https://github.com/MCProHosting/lockal",
+  "homepage": "https://github.com/mixer/lockal",
   "devDependencies": {
-    "chai": "^2.2.0",
-    "eslint": "^0.21.0",
-    "istanbul": "^0.3.13",
-    "mocha": "^2.2.4",
-    "sinon": "^1.14.1"
+    "@types/chai": "^3.5.2",
+    "@types/chai-as-promised": "0.0.30",
+    "@types/js-cookie": "^2.0.28",
+    "@types/mocha": "^2.2.41",
+    "@types/sinon": "^2.2.2",
+    "chai": "^3.0.0",
+    "chai-as-promised": "^6.0.0",
+    "mocha": "^3.4.2",
+    "npm-run-all": "^4.0.2",
+    "sinon": "^2.3.2",
+    "ts-node": "^3.0.4",
+    "tslint": "^4.0.0",
+    "tslint-microsoft-contrib": "4.0.0",
+    "typescript": "^2.3.3"
+  },
+  "dependencies": {
+    "js-cookie": "^2.1.4"
   }
 }
